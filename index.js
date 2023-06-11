@@ -117,7 +117,8 @@ app.delete('/api/persons/:id', (req, res) => {
 // this middleware has to be defined after routes section
 app.use(unknownEndpoint)
 
-const PORT = 3001
+// port 3001 required for Fly.io
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
