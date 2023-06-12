@@ -1,9 +1,12 @@
+require('dotenv').config() 
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
 
 const cors = require('cors')
 app.use(cors())
+
+const Person = require('./models/person')
 
 app.use(express.static('build'))
 
@@ -56,7 +59,8 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    // res.json(persons)
+    Person.find({}).then(person => res.json(person))
 })
 
 app.post('/api/persons', (req, res) => {
@@ -76,48 +80,62 @@ app.post('/api/persons', (req, res) => {
             { error: "Person with that name already exists"})
     }
 
-    const person = {
+    const person = new Person({
         name: body.name,
-        number: body.number,
-        id: generateID()
-    }
+        number: body.number
+    })
 
     console.log('Adding person', person)
-    persons = persons.concat(person)
-    console.log('Result array', persons)
-
-    res.json(person)
+    person.save().then( savedPerson => res.json(savedPerson)) 
 })
 
-const generateID = () => {
-    return Math.floor(Math.random() * persons.length * 1000)
-}
+app.put('/api/persons/:id', (req, res, next) => {
+    console.log('Updating PUT', req.body)
+    Person.findByIdAndUpdate(req.params.id, req.body)
+        .then(updatedPerson => res.json(updatedPerson))
+        .catch(err => next(err))
+})
 
 app.get('/info', (req, res) => {
-    let page = "<div>Phonebook has info for " +
-        persons.length + " people <br/><br/>" +
-    Date() + "</div>" 
-    res.send(page)
+    Person.find({}).then(dbRes => {
+        let page = "<div>Phonebook has info for " +
+            dbRes.length + " people <br/><br/>" +
+            Date() + "</div>"
+        res.send(page)
+    })
 })
 
-app.get('/api/persons/:id', (req, res) => {
-    let id = Number(req.params.id)
-    let person = persons.find( p => p.id == id)
-
-    console.log('get person', id, person)
-
-    person? res.json(person) : res.status(404)
+app.get('/api/persons/:id', (req, res, next) => {
+    console.log('Finding', req.params.id)
+    Person.findById(req.params.id)
+    .then(person => {
+        person? res.json(person) : res.status(404).end()
+    })
+    .catch(err => next(err))
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    let id = Number(req.params.id)
-    persons = persons.filter(p => p.id !== id)
-    console.log('deleting: ', id, persons)
-    res.status(204).end()
+app.delete('/api/persons/:id', (req, res, next) => {
+    console.log('Deleting', req.params.id)
+    Person.findByIdAndDelete(req.params.id)
+    .then(res.status(204).end())
+    .catch(err => next(err))
 })
 
 // this middleware has to be defined after routes section
 app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+
+    next(error)
+}
+
+// this has to be the last loaded middleware.
+app.use(errorHandler)
 
 // port 3001 required for Fly.io
 const PORT = process.env.PORT || 3001
