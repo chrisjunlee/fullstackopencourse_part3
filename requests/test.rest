@@ -8,9 +8,18 @@ POST http://localhost:3001/api/persons HTTP/1.1
 content-type: application/json
 
 {
-    "name": "test",
+    "name": "teaa",
     "number": "12341"
 }
 
 ###
-GET http://localhost:3001/api/persons/none
+PUT http://localhost:3001/api/persons/648670582cd5daaf075498de HTTP/1.1
+content-type: application/json
+
+{
+    "name": "te1",
+    "number": "12341"
+}
+
+###
+GET http://localhost:3001/info
