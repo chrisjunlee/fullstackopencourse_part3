@@ -77,7 +77,7 @@ app.post('/api/persons', (req, res, next) => {
 
     if (persons.find(p => p.name.toLowerCase() == body.name.toLowerCase())) {
         return res.status(400).json(
-            { error: "Person with that name already exists"})
+            { error: 'Person with that name already exists'})
     }
 
     const person = new Person({

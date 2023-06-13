@@ -1,10 +1,8 @@
 const mongoose = require('mongoose')
 mongoose.set('strictQuery', false)
 
-const url = process.env.MONGODB_URI
-
 //    `mongodb+srv://chrisjunlee:${password}@cluster0.yrqcltw.mongodb.net/?retryWrites=true&w=majority`
-
+const url = process.env.MONGODB_URI
 
 console.log('Connecting:', url)
 mongoose.connect(url)
